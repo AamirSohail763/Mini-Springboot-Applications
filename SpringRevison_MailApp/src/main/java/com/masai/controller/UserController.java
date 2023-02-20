@@ -1,0 +1,86 @@
+package com.masai.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.masai.authexceptions.AuthorizationException;
+import com.masai.authservice.UserSessionService;
+import com.masai.model.Mail;
+import com.masai.model.User;
+import com.masai.service.UserService;
+
+@RestController
+@RequestMapping("/masaimail")
+public class UserController {
+	
+	@Autowired
+	UserService service;
+	
+	@Autowired
+	UserSessionService session;
+	
+	
+	@PostMapping("/register")
+	public ResponseEntity<User> addUserHandler(@RequestBody User user, @RequestParam String key){
+		
+		Integer userId = session.getUserSessionId(key);
+		if(userId != null) {
+			return new ResponseEntity<User>(service.addUser(user), HttpStatus.CREATED);
+		}
+		else {
+			throw new AuthorizationException("User not found..");
+		}
+	}
+	
+	
+	
+	@PutMapping("/user")
+	public ResponseEntity<User> updateUserHandler(@RequestBody User user, @RequestParam String key){
+		
+		Integer userId = session.getUserSessionId(key);
+		if(userId != null) {
+			return new ResponseEntity<User>(service.updateUser(user), HttpStatus.OK);
+		}
+		else {
+			throw new AuthorizationException("User not found..");
+		}
+	}
+	
+	
+	@GetMapping("/mails/{email}")
+	public ResponseEntity<List<Mail>> getAllMailsHandler(@PathVariable("email") String email, @RequestParam String key){
+		
+		Integer userId = session.getUserSessionId(key);
+		if(userId!=null) {
+			return new ResponseEntity<List<Mail>>(service.getAllMails(email), HttpStatus.OK);
+		}
+		else {
+			throw new AuthorizationException("User not found..");
+		}
+	}
+	
+	@GetMapping("/starred/{email}")
+	public ResponseEntity<List<Mail>> getAllStarredMailsHandler(@PathVariable("email") String email, @RequestParam String key){
+		
+		Integer userId = session.getUserSessionId(key);
+		if(userId!=null) {
+			return new ResponseEntity<List<Mail>>(service.getAllStarredMails(email), HttpStatus.OK);
+		}
+		else {
+			throw new AuthorizationException("User not found..");
+		}
+	}
+	
+
+}
